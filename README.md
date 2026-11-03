@@ -54,10 +54,18 @@ A flag set is a plain object that maps each flag name to a mask with a single bi
 | --- | --- |
 | `fromNames(names)` | Creates a flag set from a list of names, giving each the next bit from bit 0 in order. |
 | `create(layout)` | Creates a flag set from an object that maps each name to its bit position, from 0 to 31. |
+| `all(set)` | Every flag in `set` combined into one mask. |
+| `fromRaw(set, value)` | Reads a stored number back as a mask of `set`, checking it only uses the set's bits. |
 
 ```ts
 const Ability = Bitflags.fromNames(['jump', 'swim', 'fly']); // jump: bit 0, swim: bit 1, fly: bit 2
 const Layer = Bitflags.create({ player: 0, enemy: 1, terrain: 4 });
+
+Bitflags.all(Ability); // 0b111
+Bitmask.remove(Bitflags.all(Layer), Layer.enemy); // player and terrain only
+
+save.abilities = abilities; // storing a mask is just the number
+abilities = Bitflags.fromRaw(Ability, save.abilities); // reading it back needs fromRaw
 ```
 
 | Type | Description |
@@ -73,6 +81,9 @@ Worth knowing:
 - **Names must be unique in `fromNames`.** A repeated name throws a `RangeError`.
 - **`create` checks every bit position.** One that isn't an integer from 0 to 31, or that's used by two names, throws a `RangeError`.
 - **No `as const` is needed.** Flag names are inferred as literal types either way.
+- **`all(set)` is not `Bitmask.ALL`.** `ALL` sets all 32 bits, while `all(set)` has only the set's own bits, so `remove(all(Layer), Layer.enemy)` leaves exactly `player` and `terrain`. A set from `create` keeps its gaps.
+- **Masks are stored as plain numbers, and read back with `fromRaw`.** Writing a mask to a save file, a network message or a `Uint32Array` needs no conversion. Reading one back gives a `number`, and `fromRaw` turns it into the set's mask type. It accepts signed values too, such as from an `Int32Array`.
+- **`fromRaw` checks the value against the set.** A bit that isn't one of the set's flags throws a `RangeError` that names the stray bits. That catches corrupt data, and saves made before a set's bits changed.
 
 ### Bitmask
 
@@ -92,6 +103,7 @@ Building and changing raw masks:
 | --- | --- |
 | `fromBit(bit)` | A raw mask with only `bit` set. |
 | `fromBits(bits)` | A raw mask with every bit in `bits` set. No bits gives `NONE`. |
+| `fromRaw(value)` | A stored number, signed or unsigned 32-bit, as a raw mask. |
 | `setBit(mask, bit)` | Raw `mask` with `bit` set. |
 | `clearBit(mask, bit)` | Raw `mask` with `bit` cleared. |
 | `hasBit(mask, bit)` | Whether `bit` is set in `mask`. Takes either kind of mask. |
@@ -129,7 +141,8 @@ Worth knowing:
 - **Raw masks are treated as a set of their own.** They combine with each other through `add`, `remove`, `has` and `hasAny`, but never with a named mask, in either argument.
 - **Bit positions are for raw masks, flag names are for named masks.** `setBit` and `clearBit` reject a named mask, so use `add` and `remove` with a flag instead. With `fromNames`, a bit position can point at a different flag after a name is inserted, but a flag name can't. `hasBit` only reads, so it takes either kind.
 - **`NONE` and `ALL` fit every flag set and raw masks too.** Use them as a starting value or as either argument, as in `add(NONE, Clear.depth)` or `setBit(NONE, 3)`.
-- **`ALL` sets every bit, not every flag.** `remove(ALL, Clear.depth)` still has bits 2 to 31 set as well as `color`.
+- **`ALL` sets every bit, not every flag.** `remove(ALL, Clear.depth)` still has bits 2 to 31 set as well as `color`. Use `Bitflags.all(Clear)` for every flag in a set.
+- **`Bitmask.fromRaw` checks the range only.** It accepts any integer from `-(2 ** 31)` to `2 ** 32 - 1` and throws a `RangeError` for anything else. For a mask saved from a flag set, use `Bitflags.fromRaw`, which also checks the value against the set.
 - **`has(mask, NONE)` is always `true`,** since every mask contains no flags. `hasAny(mask, NONE)` is always `false`.
 - **Bit positions are checked.** A bit that isn't an integer from 0 to 31 throws a `RangeError` in every function that takes one. Filter values that may be out of range with `isInRange` first.
 

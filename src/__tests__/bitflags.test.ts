@@ -88,6 +88,78 @@ describe('Bitflags', () => {
     });
   });
 
+  describe('all', () => {
+    it('should combine every flag in the set', () => {
+      const Clear = Bitflags.fromNames(['color', 'depth', 'stencil']);
+      expect(Bitflags.all(Clear)).toBe(0b111);
+    });
+
+    it('should keep the gaps of a set from create', () => {
+      const Layer = Bitflags.create({ player: 0, terrain: 4, top: 31 });
+      expect(Bitflags.all(Layer)).toBe(Bitmask.fromBits([0, 4, 31]));
+    });
+
+    it('should return NONE for an empty set', () => {
+      expect(Bitflags.all(Bitflags.fromNames([]))).toBe(Bitmask.NONE);
+    });
+
+    it('should equal ALL for a full set of 32 flags', () => {
+      expect(Bitflags.all(Bitflags.fromNames(namesOfLength(BIT_COUNT)))).toBe(Bitmask.ALL);
+    });
+
+    it('should leave only the other flags after a remove, unlike ALL', () => {
+      const Clear = Bitflags.fromNames(['color', 'depth', 'stencil']);
+      const allButDepth = Bitmask.remove(Bitflags.all(Clear), Clear.depth);
+      expect(allButDepth).toBe(Bitmask.add(Clear.color, Clear.stencil));
+      expect(Bitmask.remove(Bitmask.ALL, Clear.depth)).not.toBe(allButDepth);
+    });
+  });
+
+  describe('fromRaw', () => {
+    const Layer = Bitflags.create({ player: 0, terrain: 4, top: 31 });
+
+    it('should round-trip a stored mask', () => {
+      const layers = Bitmask.add(Layer.player, Layer.top);
+      const stored: number = layers;
+      expect(Bitflags.fromRaw(Layer, stored)).toBe(layers);
+    });
+
+    it('should accept NONE and every flag at once', () => {
+      expect(Bitflags.fromRaw(Layer, 0)).toBe(Bitmask.NONE);
+      expect(Bitflags.fromRaw(Layer, Bitflags.all(Layer))).toBe(Bitflags.all(Layer));
+    });
+
+    it('should read a signed value with bit 31 set as unsigned', () => {
+      const signed = new Int32Array([Layer.top])[0] ?? 0;
+      expect(signed).toBeLessThan(0);
+      expect(Bitflags.fromRaw(Layer, signed)).toBe(Layer.top);
+    });
+
+    it('should throw a RangeError if the value has bits outside the set', () => {
+      expect(() => Bitflags.fromRaw(Layer, 0b10)).toThrow(RangeError);
+      expect(() => Bitflags.fromRaw(Layer, 0b10)).toThrow('bits outside the set');
+    });
+
+    it('should name the stray bits in the error, unsigned', () => {
+      const Low = Bitflags.fromNames(['a']);
+      expect(() => Bitflags.fromRaw(Low, 0b110)).toThrow('got 0x6 in 6');
+      expect(() => Bitflags.fromRaw(Low, -(2 ** 31))).toThrow('got 0x80000000');
+    });
+
+    it('should throw for a value that was saved before its set changed', () => {
+      const v1 = Bitflags.fromNames(['jump', 'swim', 'fly']);
+      const saved: number = v1.fly;
+      const v2 = Bitflags.fromNames(['jump', 'swim']);
+      expect(() => Bitflags.fromRaw(v2, saved)).toThrow('bits outside the set');
+    });
+
+    it('should throw the Bitmask range error for a value that is not a 32-bit integer', () => {
+      expect(() => Bitflags.fromRaw(Layer, 2 ** 32)).toThrow('raw value out of range');
+      expect(() => Bitflags.fromRaw(Layer, 1.5)).toThrow(RangeError);
+      expect(() => Bitflags.fromRaw(Layer, Number.NaN)).toThrow(RangeError);
+    });
+  });
+
   describe('masks from a flag set', () => {
     it('should combine and test with Bitmask operations', () => {
       const Ability = Bitflags.fromNames(['jump', 'swim', 'fly']);

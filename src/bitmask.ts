@@ -1,4 +1,4 @@
-import { MAX_BIT, MIN_BIT } from './constants.js';
+import { MAX_BIT, MAX_RAW, MIN_BIT, MIN_RAW, RAW_ALL, RAW_NONE } from './constants.js';
 
 import type { RawBitmask } from './_types/bitmask.js';
 import type { Bitmask } from './_types/index.js';
@@ -22,6 +22,13 @@ export function isInRange(bit: number): boolean {
   return Number.isInteger(bit) && bit >= MIN_BIT && bit <= MAX_BIT;
 }
 
+function validateRaw(value: number): void {
+  if (!Number.isInteger(value) || value < MIN_RAW || value > MAX_RAW)
+    throw new RangeError(
+      `Bitmask: raw value out of range, expected an integer from ${MIN_RAW} to ${MAX_RAW}, got ${value}`
+    );
+}
+
 function validateBit(bit: number): void {
   if (!isInRange(bit))
     throw new RangeError(`Bitmask bit out of range (${MIN_BIT}..${MAX_BIT}): got ${bit}`);
@@ -31,47 +38,28 @@ function toMask<F extends string = string>(value: number): Bitmask<F> {
   return (value >>> 0) as Bitmask<F>;
 }
 
+/**
+ * Reads a stored number, such as from a save file or a `Uint32Array`, back as a raw mask.
+ *
+ * Both signed and unsigned 32-bit values are accepted, so a value from an `Int32Array`, or one
+ * built by hand with `|`, `~` or `<<`, works even with bit 31 set. The result is always unsigned.
+ * For a mask saved from a flag set, use `Bitflags.fromRaw`, which also checks the value against
+ * the set and returns the set's mask type.
+ *
+ * @example
+ * ```ts
+ * Bitmask.fromRaw(0b101); // bits 0 and 2
+ * Bitmask.fromRaw(-1); // 0xffffffff, the same mask as ALL
+ * ```
+ *
+ * @param value - The stored mask, an integer from `-(2 ** 31)` to `2 ** 32 - 1`.
+ * @returns The value as an unsigned raw mask.
+ * @throws {RangeError} If `value` isn't an integer in that range.
+ */
 export function fromRaw(value: number): RawBitmask {
+  validateRaw(value);
   return toMask(value) as RawBitmask;
 }
-
-/**
- * Creates a mask with a single bit set.
- *
- * Bit 31 comes back as a positive number, `2 ** 31`, unlike `1 << 31`.
- *
- * @example
- * ```ts
- * Bitmask.fromBit(2); // 0b100
- * ```
- *
- * @param bit - The bit position, from 0 to 31.
- * @returns A raw mask with only `bit` set.
- * @throws {RangeError} If `bit` isn't an integer from 0 to 31.
- */
-export function fromBit(bit: number): RawBitmask {
-  validateBit(bit);
-  return fromRaw(1 << bit);
-}
-
-/**
- * Creates a mask with every given bit set. No bits gives `NONE`, and repeated bits are ignored.
- *
- * @example
- * ```ts
- * Bitmask.fromBits([0, 2]); // 0b101
- * ```
- *
- * @param bits - The bit positions, each from 0 to 31.
- * @returns A raw mask with every bit in `bits` set.
- * @throws {RangeError} If any bit isn't an integer from 0 to 31.
- */
-export function fromBits(bits: readonly number[]): RawBitmask {
-  let mask: RawBitmask = NONE;
-  for (const bit of bits) mask = setBit(mask, bit);
-  return mask;
-}
-
 /**
  * Returns `mask` with every bit in `flags` set as well.
  *
@@ -225,6 +213,43 @@ export function hasAny(mask: Bitmask, flags: Bitmask): boolean {
 }
 
 /**
+ * Creates a mask with a single bit set.
+ *
+ * Bit 31 comes back as a positive number, `2 ** 31`, unlike `1 << 31`.
+ *
+ * @example
+ * ```ts
+ * Bitmask.fromBit(2); // 0b100
+ * ```
+ *
+ * @param bit - The bit position, from 0 to 31.
+ * @returns A raw mask with only `bit` set.
+ * @throws {RangeError} If `bit` isn't an integer from 0 to 31.
+ */
+export function fromBit(bit: number): RawBitmask {
+  validateBit(bit);
+  return fromRaw(1 << bit);
+}
+
+/**
+ * Creates a mask with every given bit set. No bits gives `NONE`, and repeated bits are ignored.
+ *
+ * @example
+ * ```ts
+ * Bitmask.fromBits([0, 2]); // 0b101
+ * ```
+ *
+ * @param bits - The bit positions, each from 0 to 31.
+ * @returns A raw mask with every bit in `bits` set.
+ * @throws {RangeError} If any bit isn't an integer from 0 to 31.
+ */
+export function fromBits(bits: readonly number[]): RawBitmask {
+  let mask: RawBitmask = NONE;
+  for (const bit of bits) mask = setBit(mask, bit);
+  return mask;
+}
+
+/**
  * Returns `mask` with the bit at position `bit` set.
  *
  * Takes only raw masks, from `fromBit`, `fromBits`, `fromRaw`, `NONE` or `ALL`. A named mask is
@@ -290,10 +315,10 @@ export function hasBit(mask: Bitmask, bit: number): boolean {
 }
 
 /** The mask with no bits set. It fits the mask type of every flag set, and raw masks too. */
-export const NONE = toMask<never>(0x00000000);
+export const NONE = toMask<never>(RAW_NONE);
 
 /**
  * The mask with all 32 bits set, as the positive number `0xffffffff`. It fits the mask type of
  * every flag set, and raw masks too, but sets every bit rather than only that set's flags.
  */
-export const ALL = toMask<never>(0xffffffff);
+export const ALL = toMask<never>(RAW_ALL);

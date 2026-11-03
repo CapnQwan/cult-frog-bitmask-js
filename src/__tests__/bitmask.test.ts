@@ -29,6 +29,36 @@ describe('Bitmask', () => {
     });
   });
 
+  describe('fromRaw', () => {
+    it('should keep unsigned values as they are', () => {
+      expect(Bitmask.fromRaw(0)).toBe(Bitmask.NONE);
+      expect(Bitmask.fromRaw(0b101)).toBe(Bitmask.fromBits([0, 2]));
+      expect(Bitmask.fromRaw(2 ** 32 - 1)).toBe(Bitmask.ALL);
+    });
+
+    it('should turn signed values into the same mask, unsigned', () => {
+      expect(Bitmask.fromRaw(-1)).toBe(Bitmask.ALL);
+      expect(Bitmask.fromRaw(-(2 ** 31))).toBe(BIT_31);
+      expect(Bitmask.fromRaw(1 << 31)).toBe(Bitmask.fromBit(MAX_BIT));
+    });
+
+    it('should read values from typed arrays', () => {
+      expect(Bitmask.fromRaw(new Int32Array([-1])[0] ?? 0)).toBe(Bitmask.ALL);
+      expect(Bitmask.fromRaw(new Uint32Array([BIT_31])[0] ?? 0)).toBe(BIT_31);
+    });
+
+    it('should throw a RangeError if the value is out of range', () => {
+      expect(() => Bitmask.fromRaw(2 ** 32)).toThrow(RangeError);
+      expect(() => Bitmask.fromRaw(-(2 ** 31) - 1)).toThrow(RangeError);
+      expect(() => Bitmask.fromRaw(2 ** 32)).toThrow('raw value out of range');
+    });
+
+    it('should throw a RangeError if the value is not an integer', () => {
+      for (const value of [1.5, Number.NaN, Number.POSITIVE_INFINITY])
+        expect(() => Bitmask.fromRaw(value)).toThrow(RangeError);
+    });
+  });
+
   describe('fromBit', () => {
     it('should create a bitmask from a bit', () => {
       for (let i = 0; i < BIT_COUNT; i++) expect(Bitmask.fromBit(i)).toBe((1 << i) >>> 0);
