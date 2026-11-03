@@ -1,0 +1,5 @@
+{
+  "extends": "@cult-frog/tooling/tsconfig/build.json",
+  "include": ["src"],
+  "exclude": ["**/*.test.ts", "**/*.test-d.ts", "**/__tests__/**"]
+}
