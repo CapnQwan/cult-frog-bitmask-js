@@ -2,7 +2,7 @@
 
 A lightweight TypeScript library of bitmask operations and utilities for managing bitwise flags.
 
-> **Status:** in early development. The package isn't on npm yet and has no public API so far.
+> **Status:** in early development. The package isn't on npm yet and its API may still change.
 
 ## What is a bitmask?
 
@@ -26,6 +26,101 @@ Two traps to watch for:
 
 - **Bitwise operators work on 32 bits.** JavaScript converts operands to signed 32-bit integers, so a single number holds at most 32 flags. `1 << 31` is negative, and `1 << 32` wraps around to `1`.
 - **`&` binds more loosely than `!==`.** `abilities & CAN_SWIM !== 0` compares first, so the parentheses in the example above are required.
+
+## Usage
+
+```ts
+import { Bitflags, Bitmask, type MaskOf } from '@cult-frog/bitmask';
+
+// Name the flags once. Each name gets its own bit.
+const Ability = Bitflags.fromNames(['jump', 'swim', 'fly']);
+type AbilityMask = MaskOf<typeof Ability>;
+
+let abilities: AbilityMask = Bitmask.NONE;
+abilities = Bitmask.add(abilities, Ability.jump);
+abilities = Bitmask.add(abilities, Ability.swim);
+
+Bitmask.has(abilities, Ability.swim); // true
+Bitmask.has(abilities, Ability.fly); // false
+```
+
+## API
+
+### Bitflags
+
+A flag set is a plain object that maps each flag name to a mask with a single bit set. Every mask in a set has the same type, `MaskOf<typeof set>`. Combining them keeps that type, and a parameter of that type rejects masks from other sets.
+
+| Function | Description |
+| --- | --- |
+| `fromNames(names)` | Creates a flag set from a list of names, giving each the next bit from bit 0 in order. |
+| `create(layout)` | Creates a flag set from an object that maps each name to its bit position, from 0 to 31. |
+
+```ts
+const Ability = Bitflags.fromNames(['jump', 'swim', 'fly']); // jump: bit 0, swim: bit 1, fly: bit 2
+const Layer = Bitflags.create({ player: 0, enemy: 1, terrain: 4 });
+```
+
+| Type | Description |
+| --- | --- |
+| `Bitflags<F>` | A flag set with the flag names `F`. |
+| `MaskOf<T>` | The mask type of the flag set `T`, as in `MaskOf<typeof Ability>`. |
+| `BitLayout` | The layout object that `create` takes. |
+
+Worth knowing:
+
+- **A set holds at most 32 flags.** A mask is a single 32-bit number, so more than 32 names or entries throws a `RangeError`.
+- **`fromNames` assigns bits by position.** Inserting a name anywhere but the end moves the bits of every name after it. If masks are saved or sent anywhere, such as a save file or over the network, use `create` so each bit stays fixed.
+- **Names must be unique in `fromNames`.** A repeated name throws a `RangeError`.
+- **`create` checks every bit position.** One that isn't an integer from 0 to 31, or that's used by two names, throws a `RangeError`.
+- **No `as const` is needed.** Flag names are inferred as literal types either way.
+
+### Bitmask
+
+A mask is a plain number at runtime, typed as `Bitmask<F>`, where `F` is the flag names of the set it came from. Every function returns a new mask, and every result is an unsigned 32-bit number, so bit 31 is never negative.
+
+Building masks from bit positions, for things like camera or collider layers:
+
+| Function | Description |
+| --- | --- |
+| `fromBit(bit)` | A mask with only `bit` set. |
+| `fromBits(bits)` | A mask with every bit in `bits` set. No bits gives `NONE`. |
+| `setBit(mask, bit)` | `mask` with `bit` set. |
+| `clearBit(mask, bit)` | `mask` with `bit` cleared. |
+| `hasBit(mask, bit)` | Whether `bit` is set in `mask`. |
+| `isInRange(bit)` | Whether `bit` is an integer from 0 to 31. |
+
+Combining and testing masks:
+
+| Function | Description |
+| --- | --- |
+| `add(mask, flags)` | `mask` with every bit in `flags` set as well. |
+| `remove(mask, flags)` | `mask` with every bit in `flags` cleared. |
+| `has(mask, flags)` | Whether every bit in `flags` is set in `mask`. |
+| `hasAny(mask, flags)` | Whether at least one bit in `flags` is set in `mask`. |
+
+| Constant | Description |
+| --- | --- |
+| `NONE` | No bits set. |
+| `ALL` | All 32 bits set. |
+
+```ts
+let layers = Bitmask.fromBits([0, 2]);
+layers = Bitmask.setBit(layers, 5);
+Bitmask.hasBit(layers, 2); // true
+
+let clear: MaskOf<typeof Clear> = Bitmask.NONE;
+clear = Bitmask.add(clear, Clear.depth);
+Bitmask.add(clear, Pass.sprite); // compile error: Pass is a different flag set
+```
+
+Worth knowing:
+
+- **Masks from different flag sets can't be mixed.** `add`, `remove`, `has` and `hasAny` take their flag names from `mask`, and reject `flags` from any other set. Masks built with `fromBit` and `fromBits` belong to no set: a named mask rejects one as `flags`, but one used as `mask` accepts flags from any set, and the result belongs to no set either.
+- **`NONE` and `ALL` fit every flag set.** Use them as a starting value or as either argument, as in `add(NONE, Clear.depth)`.
+- **`ALL` sets every bit, not every flag.** `remove(ALL, Clear.depth)` still has bits 2 to 31 set as well as `color`.
+- **`has(mask, NONE)` is always `true`,** since every mask contains no flags. `hasAny(mask, NONE)` is always `false`.
+- **Bit positions are checked.** A bit that isn't an integer from 0 to 31 throws a `RangeError` in every function that takes one. Filter values that may be out of range with `isInRange` first.
+- **`setBit` keeps the type of `mask`,** even if the bit isn't one of its flags. It's meant for masks built from bit positions.
 
 ## Requirements
 
