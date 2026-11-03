@@ -76,17 +76,25 @@ Worth knowing:
 
 ### Bitmask
 
-A mask is a plain number at runtime, typed as `Bitmask<F>`, where `F` is the flag names of the set it came from. Every function returns a new mask, and every result is an unsigned 32-bit number, so bit 31 is never negative.
+A mask is a plain number at runtime. Every function returns a new mask, and every result is an unsigned 32-bit number, so bit 31 is never negative. At the type level there are two kinds:
 
-Building masks from bit positions, for things like camera or collider layers:
+- **Named masks** come from a flag set and are typed `Bitmask<F>`, where `F` is the set's flag names. You work with them by flag name.
+- **Raw masks** are built from bit positions, for things like camera or collider layers, and are typed `RawBitmask`. You work with them by bit position.
+
+| Type | Description |
+| --- | --- |
+| `Bitmask<F>` | A mask from the flag set with the flag names `F`. |
+| `RawBitmask` | A mask built from bit positions rather than a flag set. |
+
+Building and changing raw masks:
 
 | Function | Description |
 | --- | --- |
-| `fromBit(bit)` | A mask with only `bit` set. |
-| `fromBits(bits)` | A mask with every bit in `bits` set. No bits gives `NONE`. |
-| `setBit(mask, bit)` | `mask` with `bit` set. |
-| `clearBit(mask, bit)` | `mask` with `bit` cleared. |
-| `hasBit(mask, bit)` | Whether `bit` is set in `mask`. |
+| `fromBit(bit)` | A raw mask with only `bit` set. |
+| `fromBits(bits)` | A raw mask with every bit in `bits` set. No bits gives `NONE`. |
+| `setBit(mask, bit)` | Raw `mask` with `bit` set. |
+| `clearBit(mask, bit)` | Raw `mask` with `bit` cleared. |
+| `hasBit(mask, bit)` | Whether `bit` is set in `mask`. Takes either kind of mask. |
 | `isInRange(bit)` | Whether `bit` is an integer from 0 to 31. |
 
 Combining and testing masks:
@@ -104,23 +112,26 @@ Combining and testing masks:
 | `ALL` | All 32 bits set. |
 
 ```ts
-let layers = Bitmask.fromBits([0, 2]);
+let layers: RawBitmask = Bitmask.fromBits([0, 2]);
 layers = Bitmask.setBit(layers, 5);
 Bitmask.hasBit(layers, 2); // true
 
 let clear: MaskOf<typeof Clear> = Bitmask.NONE;
 clear = Bitmask.add(clear, Clear.depth);
 Bitmask.add(clear, Pass.sprite); // compile error: Pass is a different flag set
+Bitmask.add(layers, Clear.depth); // compile error: raw and named masks don't mix
+Bitmask.setBit(clear, 5); // compile error: setBit takes raw masks only
 ```
 
 Worth knowing:
 
-- **Masks from different flag sets can't be mixed.** `add`, `remove`, `has` and `hasAny` take their flag names from `mask`, and reject `flags` from any other set. Masks built with `fromBit` and `fromBits` belong to no set: a named mask rejects one as `flags`, but one used as `mask` accepts flags from any set, and the result belongs to no set either.
-- **`NONE` and `ALL` fit every flag set.** Use them as a starting value or as either argument, as in `add(NONE, Clear.depth)`.
+- **Masks from different flag sets can't be mixed.** `add`, `remove`, `has` and `hasAny` take their flag names from `mask`, and reject `flags` from any other set.
+- **Raw masks are treated as a set of their own.** They combine with each other through `add`, `remove`, `has` and `hasAny`, but never with a named mask, in either argument.
+- **Bit positions are for raw masks, flag names are for named masks.** `setBit` and `clearBit` reject a named mask, so use `add` and `remove` with a flag instead. With `fromNames`, a bit position can point at a different flag after a name is inserted, but a flag name can't. `hasBit` only reads, so it takes either kind.
+- **`NONE` and `ALL` fit every flag set and raw masks too.** Use them as a starting value or as either argument, as in `add(NONE, Clear.depth)` or `setBit(NONE, 3)`.
 - **`ALL` sets every bit, not every flag.** `remove(ALL, Clear.depth)` still has bits 2 to 31 set as well as `color`.
 - **`has(mask, NONE)` is always `true`,** since every mask contains no flags. `hasAny(mask, NONE)` is always `false`.
 - **Bit positions are checked.** A bit that isn't an integer from 0 to 31 throws a `RangeError` in every function that takes one. Filter values that may be out of range with `isInRange` first.
-- **`setBit` keeps the type of `mask`,** even if the bit isn't one of its flags. It's meant for masks built from bit positions.
 
 ## Requirements
 

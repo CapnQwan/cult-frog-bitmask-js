@@ -1,7 +1,7 @@
 export * as Bitflags from './bitflags.js';
 export * as Bitmask from './bitmask.js';
 
-export type { BitLayout, MaskOf } from './_types/index.js';
+export type { BitLayout, MaskOf, RawBitmask } from './_types/index.js';
 
 import type { Bitflags as BitflagsType, Bitmask as BitmaskType } from './_types/index.js';
 
