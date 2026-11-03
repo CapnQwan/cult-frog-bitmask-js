@@ -94,7 +94,7 @@ export function add<F extends string = string>(
   flags: Bitmask<NoInfer<F>>
 ): Bitmask<F>;
 export function add(mask: Bitmask, flags: Bitmask): Bitmask {
-  return fromRaw(mask | flags);
+  return toMask(mask | flags);
 }
 
 /**
@@ -132,7 +132,7 @@ export function remove<F extends string = string>(
   flags: Bitmask<NoInfer<F>>
 ): Bitmask<F>;
 export function remove(mask: Bitmask, flags: Bitmask): Bitmask {
-  return fromRaw(mask & ~flags);
+  return toMask(mask & ~flags);
 }
 
 /**
@@ -171,7 +171,7 @@ export function has<F extends string = string>(
   flags: Bitmask<NoInfer<F>>
 ): boolean;
 export function has(mask: Bitmask, flags: Bitmask): boolean {
-  return fromRaw(mask & flags) === flags;
+  return toMask(mask & flags) === flags;
 }
 
 /**
@@ -209,7 +209,7 @@ export function hasAny<F extends string = string>(
   flags: Bitmask<NoInfer<F>>
 ): boolean;
 export function hasAny(mask: Bitmask, flags: Bitmask): boolean {
-  return fromRaw(mask & flags) !== 0;
+  return toMask(mask & flags) !== 0;
 }
 
 /**
@@ -228,7 +228,7 @@ export function hasAny(mask: Bitmask, flags: Bitmask): boolean {
  */
 export function fromBit(bit: number): RawBitmask {
   validateBit(bit);
-  return fromRaw(1 << bit);
+  return toMask(1 << bit);
 }
 
 /**
@@ -268,7 +268,7 @@ export function fromBits(bits: readonly number[]): RawBitmask {
  */
 export function setBit(mask: RawBitmask, bit: number): RawBitmask {
   validateBit(bit);
-  return fromRaw(mask | (1 << bit));
+  return toMask(mask | (1 << bit));
 }
 
 /**
@@ -290,7 +290,7 @@ export function setBit(mask: RawBitmask, bit: number): RawBitmask {
  */
 export function clearBit(mask: RawBitmask, bit: number): RawBitmask {
   validateBit(bit);
-  return fromRaw(mask & ~(1 << bit));
+  return toMask(mask & ~(1 << bit));
 }
 
 /**
