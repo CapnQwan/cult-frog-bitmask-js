@@ -1,4 +1,4 @@
-import { MAX_BIT, MAX_RAW, MIN_BIT, MIN_RAW, RAW_ALL, RAW_NONE } from './constants.js';
+import { BIT_COUNT, MAX_BIT, MAX_RAW, MIN_BIT, MIN_RAW, RAW_ALL, RAW_NONE } from './constants.js';
 
 import type { RawBitmask } from './_types/bitmask.js';
 import type { Bitmask } from './_types/index.js';
@@ -330,6 +330,28 @@ export function fromBits(bits: readonly number[]): RawBitmask {
   let mask: RawBitmask = NONE;
   for (const bit of bits) mask = setBit(mask, bit);
   return mask;
+}
+
+/**
+ * The positions of the bits set in `mask`, lowest first. The inverse of `fromBits`.
+ *
+ * It accepts any mask, raw or named, as it only reads. It builds a new array on every call, so
+ * it suits debugging, setup and save data more than code that runs every frame. For the flag
+ * names of a named mask, use `Bitflags.namesOf`.
+ *
+ * @example
+ * ```ts
+ * Bitmask.toBits(Bitmask.fromBits([3, 1])); // [1, 3]
+ * for (const layer of Bitmask.toBits(camera.layers)) render(layer);
+ * ```
+ *
+ * @param mask - The mask to read.
+ * @returns The set bit positions, from 0 to 31, in ascending order. `NONE` gives `[]`.
+ */
+export function toBits(mask: Bitmask): number[] {
+  const bits: number[] = [];
+  for (let i = 0; i < BIT_COUNT; i++) if (hasBit(mask, i)) bits.push(i);
+  return bits;
 }
 
 /**

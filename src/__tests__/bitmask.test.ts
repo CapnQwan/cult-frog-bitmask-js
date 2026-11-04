@@ -123,6 +123,38 @@ describe('Bitmask', () => {
     });
   });
 
+  describe('toBits', () => {
+    it('should list the set bit positions, lowest first', () => {
+      expect(Bitmask.toBits(Bitmask.fromRaw(0b1010))).toEqual([1, 3]);
+      expect(Bitmask.toBits(Bitmask.fromBits([31, 4, 0]))).toEqual([0, 4, 31]);
+    });
+
+    it('should give an empty array for NONE and every position for ALL', () => {
+      expect(Bitmask.toBits(Bitmask.NONE)).toEqual([]);
+      expect(Bitmask.toBits(Bitmask.ALL)).toEqual([...Array(BIT_COUNT).keys()]);
+    });
+
+    it('should give bit 31 as 31', () => {
+      expect(Bitmask.toBits(Bitmask.fromBit(MAX_BIT))).toEqual([MAX_BIT]);
+    });
+
+    it('should undo fromBits and match count', () => {
+      let value = 0x12345678;
+      for (let i = 0; i < 1000; i++) {
+        value = (Math.imul(value, 1664525) + 1013904223) >>> 0;
+        const mask = Bitmask.fromRaw(value);
+        const bits = Bitmask.toBits(mask);
+        expect(Bitmask.fromBits(bits)).toBe(mask);
+        expect(bits).toHaveLength(Bitmask.count(mask));
+      }
+    });
+
+    it('should read named masks too', () => {
+      const Clear = Bitflags.fromNames(['color', 'depth', 'stencil']);
+      expect(Bitmask.toBits(Bitmask.add(Clear.color, Clear.stencil))).toEqual([0, 2]);
+    });
+  });
+
   describe('add', () => {
     it('should combine the bits of both masks', () => {
       const mask1 = Bitmask.fromBit(1);

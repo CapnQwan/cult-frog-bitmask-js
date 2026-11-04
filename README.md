@@ -104,6 +104,7 @@ Building and changing raw masks:
 | --- | --- |
 | `fromBit(bit)` | A raw mask with only `bit` set. |
 | `fromBits(bits)` | A raw mask with every bit in `bits` set. No bits gives `NONE`. |
+| `toBits(mask)` | The positions of the bits set in `mask`, lowest first. Takes either kind of mask. |
 | `fromRaw(value)` | A stored number, signed or unsigned 32-bit, as a raw mask. |
 | `setBit(mask, bit)` | Raw `mask` with `bit` set. |
 | `clearBit(mask, bit)` | Raw `mask` with `bit` cleared. |
@@ -148,7 +149,7 @@ Worth knowing:
 
 - **Masks from different flag sets can't be mixed.** `add`, `remove`, `toggle`, `intersect`, `has` and `hasAny` take their flag names from `mask`, and reject `flags` from any other set.
 - **Raw masks are treated as a set of their own.** They combine with each other through `add`, `remove`, `toggle`, `intersect`, `has` and `hasAny`, but never with a named mask, in either argument.
-- **Bit positions are for raw masks, flag names are for named masks.** `setBit`, `clearBit` and `toggleBit` reject a named mask, so use `add`, `remove` and `toggle` with a flag instead. With `fromNames`, a bit position can point at a different flag after a name is inserted, but a flag name can't. `hasBit`, `isEmpty` and `count` only read, so they take either kind.
+- **Bit positions are for raw masks, flag names are for named masks.** `setBit`, `clearBit` and `toggleBit` reject a named mask, so use `add`, `remove` and `toggle` with a flag instead. With `fromNames`, a bit position can point at a different flag after a name is inserted, but a flag name can't. `hasBit`, `isEmpty`, `count` and `toBits` only read, so they take either kind.
 - **`NONE` and `ALL` fit every flag set and raw masks too.** Use them as a starting value or as either argument, as in `add(NONE, Clear.depth)` or `setBit(NONE, 3)`.
 - **`ALL` sets every bit, not every flag.** `remove(ALL, Clear.depth)` still has bits 2 to 31 set as well as `color`, and so does `toggle(ALL, Clear.depth)`. Use `Bitflags.all(Clear)` for every flag in a set, and `intersect(mask, Bitflags.all(Clear))` to drop any bits outside it.
 - **`Bitmask.fromRaw` checks the range only.** It accepts any integer from `-(2 ** 31)` to `2 ** 32 - 1` and throws a `RangeError` for anything else. For a mask saved from a flag set, use `Bitflags.fromRaw`, which also checks the value against the set.

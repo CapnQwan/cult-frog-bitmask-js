@@ -32,10 +32,11 @@ different sets apart at compile time.
 
 - **Mask operations** (`Bitmask`) for combining and testing masks of one set:
   `add`, `remove`, `toggle`, `intersect`, `has` and `hasAny`, plus the
-  constants `NONE` and `ALL`, which fit every set. `isEmpty` and `count` read
-  a mask of either kind: whether it has no bits set, and how many it has. Every
-  result is an unsigned 32-bit number, so bit 31 is never negative. `MIN_BIT`,
-  `MAX_BIT` and `BIT_COUNT` give the bit range.
+  constants `NONE` and `ALL`, which fit every set. `isEmpty`, `count` and
+  `toBits` read a mask of either kind: whether it has no bits set, how many it
+  has, and which positions they are. Every result is an unsigned 32-bit number,
+  so bit 31 is never negative. `MIN_BIT`, `MAX_BIT` and `BIT_COUNT` give the
+  bit range.
 
 - **Raw masks** (`RawBitmask`), for masks built from bit positions rather than
   flag names, such as camera or collider layers.
