@@ -49,3 +49,32 @@ describe('fromRaw', () => {
     expectTypeOf(Bitflags.fromRaw).parameter(1).toEqualTypeOf<number>();
   });
 });
+
+describe('namesOf', () => {
+  it("returns the set's literal flag names", () => {
+    expectTypeOf(Bitflags.namesOf(Clear, Clear.color)).toEqualTypeOf<('color' | 'depth')[]>();
+    expectTypeOf(Bitflags.namesOf(Layer, Layer.player)).toEqualTypeOf<('player' | 'terrain')[]>();
+  });
+
+  it('accepts NONE and ALL', () => {
+    expectTypeOf(Bitflags.namesOf(Clear, Bitmask.NONE)).toEqualTypeOf<('color' | 'depth')[]>();
+    expectTypeOf(Bitflags.namesOf(Clear, Bitmask.ALL)).toEqualTypeOf<('color' | 'depth')[]>();
+  });
+
+  it("takes only a mask of the set's own", () => {
+    // @ts-expect-error a Pass mask doesn't belong to Clear.
+    Bitflags.namesOf(Clear, Pass.sprite);
+    // @ts-expect-error a raw mask doesn't belong to any set.
+    Bitflags.namesOf(Clear, Bitmask.fromBit(0));
+    // @ts-expect-error the first argument is the set, not a mask.
+    Bitflags.namesOf(Clear.color, Clear.color);
+  });
+
+  it('reports a mismatch on the mask, since only the set decides the names', () => {
+    Bitflags.namesOf(
+      Clear,
+      // @ts-expect-error the mask is the wrong argument, not the set.
+      Pass.sprite
+    );
+  });
+});

@@ -23,6 +23,8 @@ different sets apart at compile time.
   - `fromRaw(set, value)`: reads a stored number back as a mask of the set. It
     throws if the value has a bit that isn't one of the set's flags, which
     catches corrupt data and saves made before a set's bits changed.
+  - `namesOf(set, mask)`: the names of the flags set in a mask, in the set's
+    order, for debugging and logging. Bits outside the set are ignored.
 
   Every mask in a set shares one type, `MaskOf<typeof set>`, so mixing masks
   from two sets is a compile error. Flag names are inferred as literal types

@@ -132,3 +132,25 @@ export function fromRaw<F extends string>(set: Bitflags<F>, value: number): Bitm
   // Safe: the check above proved every bit in `mask` is one of the set's flags.
   return mask as number as BitmaskType<F>;
 }
+
+/**
+ * The names of the flags in `set` that are set in `mask`, in the order the set lists them.
+ *
+ * Handy for debugging and logging, since `['color', 'stencil']` reads better than `2147483649`.
+ * Bits in `mask` that aren't one of the set's flags are ignored, so `namesOf(set, ALL)` gives
+ * every name in the set. The flag names come from `set` alone, so a mask from another set is a
+ * compile error.
+ *
+ * @example
+ * ```ts
+ * Bitflags.namesOf(Clear, Bitmask.add(Clear.color, Clear.stencil)); // ['color', 'stencil']
+ * console.log(`clearing ${Bitflags.namesOf(Clear, clear).join(', ')}`);
+ * ```
+ *
+ * @param set - The flag set `mask` belongs to.
+ * @param mask - A mask of `set`, or `NONE` or `ALL`.
+ * @returns The names of the flags set in `mask`. `NONE` gives `[]`.
+ */
+export function namesOf<F extends string>(set: Bitflags<F>, mask: BitmaskType<NoInfer<F>>): F[] {
+  return (Object.keys(set) as F[]).filter((name) => Bitmask.has(mask, set[name]));
+}

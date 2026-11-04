@@ -183,6 +183,48 @@ describe('Bitflags', () => {
     });
   });
 
+  describe('namesOf', () => {
+    const Clear = Bitflags.fromNames(['color', 'depth', 'stencil']);
+
+    it('should give the names of the flags that are set', () => {
+      expect(Bitflags.namesOf(Clear, Bitmask.add(Clear.color, Clear.stencil))).toEqual([
+        'color',
+        'stencil',
+      ]);
+      expect(Bitflags.namesOf(Clear, Clear.depth)).toEqual(['depth']);
+    });
+
+    it('should give an empty array for NONE and every name for ALL', () => {
+      expect(Bitflags.namesOf(Clear, Bitmask.NONE)).toEqual([]);
+      expect(Bitflags.namesOf(Clear, Bitmask.ALL)).toEqual(['color', 'depth', 'stencil']);
+      expect(Bitflags.namesOf(Clear, Bitflags.all(Clear))).toEqual(['color', 'depth', 'stencil']);
+    });
+
+    it('should find names by their bit in a set from create, gaps and all', () => {
+      const Layer = Bitflags.create({ player: 0, enemy: 1, terrain: 4, top: 31 });
+      expect(Bitflags.namesOf(Layer, Bitmask.add(Layer.player, Layer.terrain))).toEqual([
+        'player',
+        'terrain',
+      ]);
+      expect(Bitflags.namesOf(Layer, Layer.top)).toEqual(['top']);
+    });
+
+    it('should list names in the order the set lists them, not by bit', () => {
+      const Swapped = Bitflags.create({ b: 1, a: 0 });
+      expect(Bitflags.namesOf(Swapped, Swapped.a)).toEqual(['a']);
+      expect(Bitflags.namesOf(Swapped, Bitflags.all(Swapped))).toEqual(['b', 'a']);
+    });
+
+    it('should ignore bits that are not flags of the set', () => {
+      const stray = Bitmask.add(Clear.depth, Bitmask.ALL);
+      expect(Bitflags.namesOf(Clear, Bitmask.remove(stray, Bitflags.all(Clear)))).toEqual([]);
+    });
+
+    it('should give no names for an empty set', () => {
+      expect(Bitflags.namesOf(Bitflags.fromNames([]), Bitmask.ALL)).toEqual([]);
+    });
+  });
+
   describe('masks from a flag set', () => {
     it('should combine and test with Bitmask operations', () => {
       const Ability = Bitflags.fromNames(['jump', 'swim', 'fly']);

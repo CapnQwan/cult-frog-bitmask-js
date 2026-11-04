@@ -56,6 +56,7 @@ A flag set is a plain object that maps each flag name to a mask with a single bi
 | `create(layout)` | Creates a flag set from an object that maps each name to its bit position, from 0 to 31. |
 | `all(set)` | Every flag in `set` combined into one mask. |
 | `fromRaw(set, value)` | Reads a stored number back as a mask of `set`, checking it only uses the set's bits. |
+| `namesOf(set, mask)` | The names of the flags set in `mask`, in the set's order. Handy for debugging. |
 
 ```ts
 const Ability = Bitflags.fromNames(['jump', 'swim', 'fly']); // jump: bit 0, swim: bit 1, fly: bit 2
@@ -66,6 +67,8 @@ Bitmask.remove(Bitflags.all(Layer), Layer.enemy); // player and terrain only
 
 save.abilities = abilities; // storing a mask is just the number
 abilities = Bitflags.fromRaw(Ability, save.abilities); // reading it back needs fromRaw
+
+Bitflags.namesOf(Ability, abilities); // such as ['jump', 'swim'], rather than 3
 ```
 
 | Type | Description |
@@ -85,6 +88,7 @@ Worth knowing:
 - **`all(set)` is not `Bitmask.ALL`.** `ALL` sets all 32 bits, while `all(set)` has only the set's own bits, so `remove(all(Layer), Layer.enemy)` leaves exactly `player` and `terrain`. A set from `create` keeps its gaps.
 - **Masks are stored as plain numbers, and read back with `fromRaw`.** Writing a mask to a save file, a network message or a `Uint32Array` needs no conversion. Reading one back gives a `number`, and `fromRaw` turns it into the set's mask type. It accepts signed values too, such as from an `Int32Array`.
 - **`fromRaw` checks the value against the set.** A bit that isn't one of the set's flags throws a `RangeError` that names the stray bits. That catches corrupt data, and saves made before a set's bits changed.
+- **`namesOf` lists names in the set's order, not by bit.** For a set from `create`, that's the order of the layout object. Bits that aren't one of the set's flags are ignored, so `namesOf(set, ALL)` gives every name.
 
 ### Bitmask
 
