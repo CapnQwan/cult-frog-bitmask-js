@@ -92,7 +92,7 @@ Worth knowing:
 
 ### Bitmask
 
-A mask is a plain number at runtime. Every function returns a new mask, and every result is an unsigned 32-bit number, so bit 31 is never negative. At the type level there are two kinds:
+A mask is a plain number at runtime. Every function that returns a mask returns a new one, as an unsigned 32-bit number, so bit 31 is never negative. At the type level there are two kinds:
 
 - **Named masks** come from a flag set and are typed `Bitmask<F>`, where `F` is the set's flag names. You work with them by flag name.
 - **Raw masks** are built from bit positions, for things like camera or collider layers, and are typed `RawBitmask`. You work with them by bit position.
