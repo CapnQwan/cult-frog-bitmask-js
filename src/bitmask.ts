@@ -179,6 +179,46 @@ export function toggle(mask: Bitmask, flags: Bitmask): Bitmask {
 }
 
 /**
+ * Returns only the bits set in both `mask` and `flags`.
+ *
+ * This overload is for `NONE` or `ALL` as `mask`: the result takes its flag names from `flags`.
+ * `intersect(ALL, flags)` is just `flags`, and `intersect(NONE, flags)` is always `NONE`.
+ *
+ * @example
+ * ```ts
+ * Bitmask.intersect(Bitmask.ALL, Clear.color); // Clear.color
+ * ```
+ *
+ * @param mask - `NONE` or `ALL`.
+ * @param flags - The flags to keep.
+ * @returns A new mask with only the bits in both.
+ */
+export function intersect<F extends string>(mask: Bitmask<never>, flags: Bitmask<F>): Bitmask<F>;
+/**
+ * Returns only the bits set in both `mask` and `flags`.
+ *
+ * `flags` must come from the same flag set as `mask`, so mixing sets is a compile error.
+ * Intersecting with `Bitflags.all(set)` drops any bits that aren't the set's flags.
+ *
+ * @example
+ * ```ts
+ * const hits = Bitmask.intersect(a.collidesWith, b.layers);
+ * const clean = Bitmask.intersect(mask, Bitflags.all(Clear));
+ * ```
+ *
+ * @param mask - The mask to keep bits from.
+ * @param flags - The flags to keep.
+ * @returns A new mask with only the bits in both.
+ */
+export function intersect<F extends string = string>(
+  mask: Bitmask<F>,
+  flags: Bitmask<NoInfer<F>>
+): Bitmask<F>;
+export function intersect(mask: Bitmask, flags: Bitmask): Bitmask {
+  return toMask(mask & flags);
+}
+
+/**
  * Whether `mask` has every bit in `flags` set.
  *
  * This overload is for `NONE` or `ALL` as `mask`, which accept flags from any set.
@@ -214,7 +254,7 @@ export function has<F extends string = string>(
   flags: Bitmask<NoInfer<F>>
 ): boolean;
 export function has(mask: Bitmask, flags: Bitmask): boolean {
-  return toMask(mask & flags) === flags;
+  return intersect(mask, flags) === flags;
 }
 
 /**
@@ -252,7 +292,7 @@ export function hasAny<F extends string = string>(
   flags: Bitmask<NoInfer<F>>
 ): boolean;
 export function hasAny(mask: Bitmask, flags: Bitmask): boolean {
-  return toMask(mask & flags) !== 0;
+  return intersect(mask, flags) !== 0;
 }
 
 /**

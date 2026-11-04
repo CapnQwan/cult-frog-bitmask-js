@@ -31,10 +31,10 @@ different sets apart at compile time.
   bit outside 0 to 31 throws a `RangeError`.
 
 - **Mask operations** (`Bitmask`) for combining and testing masks of one set:
-  `add`, `remove`, `toggle`, `has` and `hasAny`, plus the constants `NONE` and
-  `ALL`, which fit every set. Every result is an unsigned 32-bit number, so bit
-  31 is never negative. `MIN_BIT`, `MAX_BIT` and `BIT_COUNT` give the bit
-  range.
+  `add`, `remove`, `toggle`, `intersect`, `has` and `hasAny`, plus the
+  constants `NONE` and `ALL`, which fit every set. Every result is an unsigned
+  32-bit number, so bit 31 is never negative. `MIN_BIT`, `MAX_BIT` and
+  `BIT_COUNT` give the bit range.
 
 - **Raw masks** (`RawBitmask`), for masks built from bit positions rather than
   flag names, such as camera or collider layers.

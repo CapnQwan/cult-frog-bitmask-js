@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { BIT_COUNT, MAX_BIT } from '../constants.js';
-import { Bitmask } from '../index.js';
+import { Bitflags, Bitmask } from '../index.js';
 
 const BIT_31 = 2 ** 31;
 
@@ -209,6 +209,42 @@ describe('Bitmask', () => {
     it('should keep the result unsigned', () => {
       expect(Bitmask.toggle(Bitmask.NONE, Bitmask.fromBit(MAX_BIT))).toBe(BIT_31);
       expect(Bitmask.toggle(Bitmask.ALL, Bitmask.fromBit(MAX_BIT))).toBe(0x7fffffff);
+    });
+  });
+
+  describe('intersect', () => {
+    it('should keep only the bits set in both masks', () => {
+      const mask = Bitmask.fromBits([0, 1, 2]);
+      expect(Bitmask.intersect(mask, Bitmask.fromBits([1, 2, 3]))).toBe(Bitmask.fromBits([1, 2]));
+    });
+
+    it('should give NONE for masks with no bits in common', () => {
+      expect(Bitmask.intersect(Bitmask.fromBits([0, 1]), Bitmask.fromBits([2, 3]))).toBe(
+        Bitmask.NONE
+      );
+    });
+
+    it('should give NONE when either mask is NONE', () => {
+      const mask = Bitmask.fromBits([1, 2]);
+      expect(Bitmask.intersect(mask, Bitmask.NONE)).toBe(Bitmask.NONE);
+      expect(Bitmask.intersect(Bitmask.NONE, mask)).toBe(Bitmask.NONE);
+    });
+
+    it('should give back the other mask when either mask is ALL', () => {
+      const mask = Bitmask.fromBits([1, 2]);
+      expect(Bitmask.intersect(mask, Bitmask.ALL)).toBe(mask);
+      expect(Bitmask.intersect(Bitmask.ALL, mask)).toBe(mask);
+      expect(Bitmask.intersect(Bitmask.ALL, Bitmask.ALL)).toBe(Bitmask.ALL);
+    });
+
+    it('should drop bits outside a flag set when intersected with all(set)', () => {
+      const Clear = Bitflags.fromNames(['color', 'depth']);
+      const stray = Bitmask.add(Clear.color, Bitmask.ALL);
+      expect(Bitmask.intersect(stray, Bitflags.all(Clear))).toBe(Bitflags.all(Clear));
+    });
+
+    it('should keep the result unsigned', () => {
+      expect(Bitmask.intersect(Bitmask.ALL, Bitmask.fromBit(MAX_BIT))).toBe(BIT_31);
     });
   });
 

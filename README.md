@@ -118,6 +118,7 @@ Combining and testing masks:
 | `add(mask, flags)` | `mask` with every bit in `flags` set as well. |
 | `remove(mask, flags)` | `mask` with every bit in `flags` cleared. |
 | `toggle(mask, flags)` | `mask` with every bit in `flags` flipped. Toggling two masks gives the bits that differ. |
+| `intersect(mask, flags)` | Only the bits set in both `mask` and `flags`. |
 | `has(mask, flags)` | Whether every bit in `flags` is set in `mask`. |
 | `hasAny(mask, flags)` | Whether at least one bit in `flags` is set in `mask`. |
 
@@ -143,11 +144,11 @@ Bitmask.setBit(clear, 5); // compile error: setBit takes raw masks only
 
 Worth knowing:
 
-- **Masks from different flag sets can't be mixed.** `add`, `remove`, `toggle`, `has` and `hasAny` take their flag names from `mask`, and reject `flags` from any other set.
-- **Raw masks are treated as a set of their own.** They combine with each other through `add`, `remove`, `toggle`, `has` and `hasAny`, but never with a named mask, in either argument.
+- **Masks from different flag sets can't be mixed.** `add`, `remove`, `toggle`, `intersect`, `has` and `hasAny` take their flag names from `mask`, and reject `flags` from any other set.
+- **Raw masks are treated as a set of their own.** They combine with each other through `add`, `remove`, `toggle`, `intersect`, `has` and `hasAny`, but never with a named mask, in either argument.
 - **Bit positions are for raw masks, flag names are for named masks.** `setBit`, `clearBit` and `toggleBit` reject a named mask, so use `add`, `remove` and `toggle` with a flag instead. With `fromNames`, a bit position can point at a different flag after a name is inserted, but a flag name can't. `hasBit` only reads, so it takes either kind.
 - **`NONE` and `ALL` fit every flag set and raw masks too.** Use them as a starting value or as either argument, as in `add(NONE, Clear.depth)` or `setBit(NONE, 3)`.
-- **`ALL` sets every bit, not every flag.** `remove(ALL, Clear.depth)` still has bits 2 to 31 set as well as `color`, and so does `toggle(ALL, Clear.depth)`. Use `Bitflags.all(Clear)` for every flag in a set.
+- **`ALL` sets every bit, not every flag.** `remove(ALL, Clear.depth)` still has bits 2 to 31 set as well as `color`, and so does `toggle(ALL, Clear.depth)`. Use `Bitflags.all(Clear)` for every flag in a set, and `intersect(mask, Bitflags.all(Clear))` to drop any bits outside it.
 - **`Bitmask.fromRaw` checks the range only.** It accepts any integer from `-(2 ** 31)` to `2 ** 32 - 1` and throws a `RangeError` for anything else. For a mask saved from a flag set, use `Bitflags.fromRaw`, which also checks the value against the set.
 - **`has(mask, NONE)` is always `true`,** since every mask contains no flags. `hasAny(mask, NONE)` is always `false`.
 - **Bit positions are checked.** A bit that isn't an integer from 0 to 31 throws a `RangeError` in every function that takes one. Filter values that may be out of range with `isInRange` first.

@@ -13,6 +13,7 @@ describe('named masks', () => {
     expectTypeOf(Bitmask.add(Clear.color, Clear.depth)).toEqualTypeOf<ClearMask>();
     expectTypeOf(Bitmask.remove(Clear.color, Clear.depth)).toEqualTypeOf<ClearMask>();
     expectTypeOf(Bitmask.toggle(Clear.color, Clear.depth)).toEqualTypeOf<ClearMask>();
+    expectTypeOf(Bitmask.intersect(Clear.color, Clear.depth)).toEqualTypeOf<ClearMask>();
     expectTypeOf(Bitmask.has(Clear.color, Clear.depth)).toEqualTypeOf<boolean>();
     expectTypeOf(Bitmask.hasAny(Clear.color, Clear.depth)).toEqualTypeOf<boolean>();
   });
@@ -24,6 +25,8 @@ describe('named masks', () => {
     expectTypeOf(Bitmask.remove(Clear.color, Bitmask.NONE)).toEqualTypeOf<ClearMask>();
     expectTypeOf(Bitmask.toggle(Bitmask.ALL, Clear.color)).toEqualTypeOf<ClearMask>();
     expectTypeOf(Bitmask.toggle(Clear.color, Bitmask.ALL)).toEqualTypeOf<ClearMask>();
+    expectTypeOf(Bitmask.intersect(Bitmask.ALL, Clear.color)).toEqualTypeOf<ClearMask>();
+    expectTypeOf(Bitmask.intersect(Clear.color, Bitmask.NONE)).toEqualTypeOf<ClearMask>();
     expectTypeOf(Bitmask.has(Bitmask.ALL, Clear.color)).toEqualTypeOf<boolean>();
     expectTypeOf(Bitmask.hasAny(Clear.color, Bitmask.NONE)).toEqualTypeOf<boolean>();
   });
@@ -35,6 +38,8 @@ describe('named masks', () => {
     Bitmask.remove(Clear.color, Pass.sprite);
     // @ts-expect-error a Pass flag isn't one of Clear's, so toggle rejects it.
     Bitmask.toggle(Clear.color, Pass.sprite);
+    // @ts-expect-error a Pass flag isn't one of Clear's, so intersect rejects it.
+    Bitmask.intersect(Clear.color, Pass.sprite);
     // @ts-expect-error a Pass flag isn't one of Clear's, so has rejects it.
     Bitmask.has(Clear.color, Pass.sprite);
     // @ts-expect-error a Pass flag isn't one of Clear's, so hasAny rejects it.
@@ -59,6 +64,7 @@ describe('raw masks', () => {
     expectTypeOf(Bitmask.add(layers, Bitmask.fromBit(4))).toEqualTypeOf<RawBitmask>();
     expectTypeOf(Bitmask.remove(layers, Bitmask.fromBit(0))).toEqualTypeOf<RawBitmask>();
     expectTypeOf(Bitmask.toggle(layers, Bitmask.fromBit(0))).toEqualTypeOf<RawBitmask>();
+    expectTypeOf(Bitmask.intersect(layers, Bitmask.fromBit(2))).toEqualTypeOf<RawBitmask>();
     expectTypeOf(Bitmask.has(layers, Bitmask.fromBit(2))).toEqualTypeOf<boolean>();
     expectTypeOf(Bitmask.hasAny(layers, Bitmask.fromBit(2))).toEqualTypeOf<boolean>();
   });
@@ -69,6 +75,7 @@ describe('raw masks', () => {
     expectTypeOf(Bitmask.add(layers, Bitmask.ALL)).toEqualTypeOf<RawBitmask>();
     expectTypeOf(Bitmask.toggle(Bitmask.NONE, layers)).toEqualTypeOf<RawBitmask>();
     expectTypeOf(Bitmask.toggle(layers, Bitmask.ALL)).toEqualTypeOf<RawBitmask>();
+    expectTypeOf(Bitmask.intersect(Bitmask.ALL, layers)).toEqualTypeOf<RawBitmask>();
     expectTypeOf(Bitmask.NONE).toExtend<RawBitmask>();
     expectTypeOf(Bitmask.ALL).toExtend<RawBitmask>();
   });
@@ -81,6 +88,8 @@ describe('raw masks', () => {
     Bitmask.remove(layers, Clear.color);
     // @ts-expect-error a raw mask can't take named flags in toggle.
     Bitmask.toggle(layers, Clear.color);
+    // @ts-expect-error a raw mask can't take named flags in intersect.
+    Bitmask.intersect(layers, Clear.color);
     // @ts-expect-error a raw mask can't take named flags in has.
     Bitmask.has(layers, Clear.color);
     // @ts-expect-error a raw mask can't take named flags in hasAny.
@@ -89,6 +98,8 @@ describe('raw masks', () => {
     Bitmask.add(Clear.color, layers);
     // @ts-expect-error a named mask can't take raw flags in toggle either.
     Bitmask.toggle(Clear.color, layers);
+    // @ts-expect-error a named mask can't take raw flags in intersect either.
+    Bitmask.intersect(Clear.color, layers);
     // @ts-expect-error a mask from fromRaw is raw too, so a named mask rejects it.
     Bitmask.has(Clear.color, Bitmask.fromRaw(1));
   });
