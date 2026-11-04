@@ -138,12 +138,15 @@ describe('setBit, clearBit and toggleBit', () => {
   });
 });
 
-describe('hasBit and isEmpty', () => {
+describe('hasBit, isEmpty and count', () => {
   it('accept raw and named masks, since they only read', () => {
     expectTypeOf(Bitmask.hasBit(Bitmask.fromBit(0), 0)).toEqualTypeOf<boolean>();
     expectTypeOf(Bitmask.hasBit(Clear.color, 0)).toEqualTypeOf<boolean>();
     expectTypeOf(Bitmask.isEmpty(Bitmask.fromBit(0))).toEqualTypeOf<boolean>();
     expectTypeOf(Bitmask.isEmpty(Clear.color)).toEqualTypeOf<boolean>();
     expectTypeOf(Bitmask.isEmpty(Bitmask.NONE)).toEqualTypeOf<boolean>();
+    expectTypeOf(Bitmask.count(Bitmask.fromBit(0))).toEqualTypeOf<number>();
+    expectTypeOf(Bitmask.count(Clear.color)).toEqualTypeOf<number>();
+    expectTypeOf(Bitmask.count(Bitmask.ALL)).toEqualTypeOf<number>();
   });
 });

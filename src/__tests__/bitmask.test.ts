@@ -394,4 +394,47 @@ describe('Bitmask', () => {
       expect(Bitmask.isEmpty(Bitmask.intersect(mask, Bitmask.fromBit(4)))).toBe(true);
     });
   });
+
+  describe('count', () => {
+    function countByLoop(mask: number): number {
+      let n = 0;
+      for (let i = 0; i < BIT_COUNT; i++) n += (mask >>> i) & 1;
+      return n;
+    }
+
+    it('should be 0 for NONE and 32 for ALL', () => {
+      expect(Bitmask.count(Bitmask.NONE)).toBe(0);
+      expect(Bitmask.count(Bitmask.ALL)).toBe(32);
+    });
+
+    it('should be 1 for every single bit, including bit 31', () => {
+      for (let i = 0; i < BIT_COUNT; i++) expect(Bitmask.count(Bitmask.fromBit(i))).toBe(1);
+    });
+
+    it('should add up bits that sit next to each other', () => {
+      expect(Bitmask.count(Bitmask.fromBits([0, 1, 3]))).toBe(3);
+      expect(Bitmask.count(Bitmask.fromRaw(0x55555555))).toBe(16);
+      expect(Bitmask.count(Bitmask.fromRaw(0xaaaaaaaa))).toBe(16);
+      expect(Bitmask.count(Bitmask.fromRaw(0xffff0000))).toBe(16);
+    });
+
+    it('should count the lowest n bits as n', () => {
+      for (let n = 0; n <= BIT_COUNT; n++)
+        expect(Bitmask.count(Bitmask.fromBits([...Array(n).keys()]))).toBe(n);
+    });
+
+    it('should match a bit-by-bit count', () => {
+      let value = 0x12345678;
+      for (let i = 0; i < 1000; i++) {
+        value = (Math.imul(value, 1664525) + 1013904223) >>> 0;
+        expect(Bitmask.count(Bitmask.fromRaw(value))).toBe(countByLoop(value));
+      }
+    });
+
+    it('should count named masks too', () => {
+      const Clear = Bitflags.fromNames(['color', 'depth', 'stencil']);
+      expect(Bitmask.count(Bitflags.all(Clear))).toBe(3);
+      expect(Bitmask.count(Bitmask.add(Clear.color, Clear.stencil))).toBe(2);
+    });
+  });
 });

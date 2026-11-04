@@ -438,6 +438,34 @@ export function isEmpty(mask: Bitmask): boolean {
   return mask === NONE;
 }
 
+/**
+ * How many bits are set in `mask`, from 0 to 32.
+ *
+ * It accepts any mask, raw or named, as it only reads. It takes the same five steps however many
+ * bits are set, so it's cheap enough to call every frame.
+ *
+ * @example
+ * ```ts
+ * const unlocked = Bitmask.count(abilities); // as in "4 of 7 unlocked"
+ * const shared = Bitmask.count(Bitmask.intersect(a.tags, b.tags));
+ * ```
+ *
+ * @param mask - The mask to count.
+ * @returns The number of bits set in `mask`.
+ */
+export function count(mask: Bitmask): number {
+  // The mask starts as 32 one-bit counters, each already holding 0 or 1. Each step adds the
+  // counters together in neighbouring pairs, so there are half as many and each is twice as
+  // wide. The mask keeps the right counter of each pair, and the shift lines the left one up
+  // with it first.
+  let result = (mask & 0x55555555) + ((mask >>> 1) & 0x55555555); // 16 counters of 2 bits
+  result = (result & 0x33333333) + ((result >>> 2) & 0x33333333); // 8 counters of 4 bits
+  result = (result & 0x0f0f0f0f) + ((result >>> 4) & 0x0f0f0f0f); // 4 counters of 8 bits
+  result = (result & 0x00ff00ff) + ((result >>> 8) & 0x00ff00ff); // 2 counters of 16 bits
+  result = (result & 0x0000ffff) + ((result >>> 16) & 0x0000ffff); // 1 counter, the total
+  return result;
+}
+
 /** The mask with no bits set. It fits the mask type of every flag set, and raw masks too. */
 export const NONE = toMask<never>(RAW_NONE);
 
