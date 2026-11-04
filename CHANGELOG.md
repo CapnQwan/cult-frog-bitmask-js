@@ -31,23 +31,24 @@ different sets apart at compile time.
   bit outside 0 to 31 throws a `RangeError`.
 
 - **Mask operations** (`Bitmask`) for combining and testing masks of one set:
-  `add`, `remove`, `has` and `hasAny`, plus the constants `NONE` and `ALL`,
-  which fit every set. Every result is an unsigned 32-bit number, so bit 31 is
-  never negative. `MIN_BIT`, `MAX_BIT` and `BIT_COUNT` give the bit range.
+  `add`, `remove`, `toggle`, `has` and `hasAny`, plus the constants `NONE` and
+  `ALL`, which fit every set. Every result is an unsigned 32-bit number, so bit
+  31 is never negative. `MIN_BIT`, `MAX_BIT` and `BIT_COUNT` give the bit
+  range.
 
 - **Raw masks** (`RawBitmask`), for masks built from bit positions rather than
   flag names, such as camera or collider layers.
-  - `fromBit`, `fromBits`, `setBit`, `clearBit` and `hasBit` work by bit
-    position, and `isInRange` checks a position before use. A position outside
-    0 to 31 throws a `RangeError`.
+  - `fromBit`, `fromBits`, `setBit`, `clearBit`, `toggleBit` and `hasBit` work
+    by bit position, and `isInRange` checks a position before use. A position
+    outside 0 to 31 throws a `RangeError`.
   - `fromRaw(value)` reads a stored number back as a raw mask. It accepts
     signed and unsigned 32-bit values, such as from an `Int32Array` or a
     `Uint32Array`, and throws a `RangeError` for anything else.
 
   Raw masks combine with each other and with `NONE` and `ALL`, but never with a
-  named mask. `setBit` and `clearBit` reject named masks, since a bit position
-  can point at a different flag after a name is inserted into a `fromNames`
-  list. Use `add` and `remove` with a flag instead.
+  named mask. `setBit`, `clearBit` and `toggleBit` reject named masks, since a
+  bit position can point at a different flag after a name is inserted into a
+  `fromNames` list. Use `add`, `remove` and `toggle` with a flag instead.
 
 - **Types**: `Bitmask<F>`, `RawBitmask`, `Bitflags<F>`, `MaskOf<T>` and
   `BitLayout`.

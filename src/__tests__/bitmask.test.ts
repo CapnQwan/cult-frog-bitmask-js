@@ -176,6 +176,42 @@ describe('Bitmask', () => {
     });
   });
 
+  describe('toggle', () => {
+    it('should clear flags that are set and set flags that are clear', () => {
+      const mask = Bitmask.fromBits([0, 1]);
+      expect(Bitmask.toggle(mask, Bitmask.fromBits([1, 2]))).toBe(Bitmask.fromBits([0, 2]));
+    });
+
+    it('should give back the original mask when toggled twice', () => {
+      const mask = Bitmask.fromBits([0, 5, 31]);
+      const flags = Bitmask.fromBits([5, 9]);
+      expect(Bitmask.toggle(Bitmask.toggle(mask, flags), flags)).toBe(mask);
+    });
+
+    it('should give the bits that differ between two masks', () => {
+      const previous = Bitmask.fromBits([0, 1, 2]);
+      const current = Bitmask.fromBits([1, 2, 3]);
+      expect(Bitmask.toggle(previous, current)).toBe(Bitmask.fromBits([0, 3]));
+      expect(Bitmask.toggle(current, current)).toBe(Bitmask.NONE);
+    });
+
+    it('should treat NONE as toggling nothing', () => {
+      const mask = Bitmask.fromBits([1, 2]);
+      expect(Bitmask.toggle(mask, Bitmask.NONE)).toBe(mask);
+      expect(Bitmask.toggle(Bitmask.NONE, mask)).toBe(mask);
+    });
+
+    it('should invert the mask when toggling ALL', () => {
+      expect(Bitmask.toggle(Bitmask.fromBit(0), Bitmask.ALL)).toBe(0xfffffffe);
+      expect(Bitmask.toggle(Bitmask.ALL, Bitmask.ALL)).toBe(Bitmask.NONE);
+    });
+
+    it('should keep the result unsigned', () => {
+      expect(Bitmask.toggle(Bitmask.NONE, Bitmask.fromBit(MAX_BIT))).toBe(BIT_31);
+      expect(Bitmask.toggle(Bitmask.ALL, Bitmask.fromBit(MAX_BIT))).toBe(0x7fffffff);
+    });
+  });
+
   describe('has', () => {
     it('should check if a bitmask has a bitmask', () => {
       const mask = Bitmask.fromBit(1);
@@ -262,6 +298,28 @@ describe('Bitmask', () => {
     it('should throw a RangeError if the bit is out of range', () => {
       expect(() => Bitmask.clearBit(Bitmask.ALL, BIT_COUNT)).toThrow(RangeError);
       expect(() => Bitmask.clearBit(Bitmask.ALL, -1)).toThrow(RangeError);
+    });
+  });
+
+  describe('toggleBit', () => {
+    it('should set the bit if it is clear and keep the rest', () => {
+      expect(Bitmask.toggleBit(Bitmask.fromBit(0), 2)).toBe(Bitmask.fromBits([0, 2]));
+    });
+
+    it('should clear the bit if it is set and keep the rest', () => {
+      expect(Bitmask.toggleBit(Bitmask.fromBits([0, 2]), 2)).toBe(Bitmask.fromBit(0));
+    });
+
+    it('should keep the result unsigned', () => {
+      expect(Bitmask.toggleBit(Bitmask.NONE, MAX_BIT)).toBe(BIT_31);
+      expect(Bitmask.toggleBit(Bitmask.ALL, MAX_BIT)).toBe(0x7fffffff);
+      expect(Bitmask.toggleBit(Bitmask.ALL, 0)).toBe(0xfffffffe);
+    });
+
+    it('should throw a RangeError if the bit is out of range', () => {
+      expect(() => Bitmask.toggleBit(Bitmask.NONE, BIT_COUNT)).toThrow(RangeError);
+      expect(() => Bitmask.toggleBit(Bitmask.NONE, -1)).toThrow(RangeError);
+      expect(() => Bitmask.toggleBit(Bitmask.NONE, 1.5)).toThrow(RangeError);
     });
   });
 

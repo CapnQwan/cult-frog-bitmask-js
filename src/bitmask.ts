@@ -138,6 +138,47 @@ export function remove(mask: Bitmask, flags: Bitmask): Bitmask {
 }
 
 /**
+ * Returns `mask` with every bit in `flags` flipped: set bits are cleared and clear bits are set.
+ *
+ * This overload is for `NONE` or `ALL` as `mask`: the result takes its flag names from `flags`.
+ * `ALL` sets all 32 bits, so `toggle(ALL, flag)` still has every bit outside the flag set. Toggle
+ * `Bitflags.all(set)` instead to stay inside the set.
+ *
+ * @example
+ * ```ts
+ * const allButDepth = Bitmask.toggle(Bitflags.all(Clear), Clear.depth);
+ * ```
+ *
+ * @param mask - `NONE` or `ALL`.
+ * @param flags - The flags to flip.
+ * @returns A new mask with the bits of `flags` flipped.
+ */
+export function toggle<F extends string>(mask: Bitmask<never>, flags: Bitmask<F>): Bitmask<F>;
+/**
+ * Returns `mask` with every bit in `flags` flipped: set bits are cleared and clear bits are set.
+ *
+ * `flags` must come from the same flag set as `mask`, so mixing sets is a compile error. Toggling
+ * one mask with another gives the flags that differ between them.
+ *
+ * @example
+ * ```ts
+ * debug = Bitmask.toggle(debug, Debug.wireframe);
+ * const changed = Bitmask.toggle(previous, current);
+ * ```
+ *
+ * @param mask - The mask to flip bits in.
+ * @param flags - The flags to flip.
+ * @returns A new mask with the bits of `flags` flipped.
+ */
+export function toggle<F extends string = string>(
+  mask: Bitmask<F>,
+  flags: Bitmask<NoInfer<F>>
+): Bitmask<F>;
+export function toggle(mask: Bitmask, flags: Bitmask): Bitmask {
+  return toMask(mask ^ flags);
+}
+
+/**
  * Whether `mask` has every bit in `flags` set.
  *
  * This overload is for `NONE` or `ALL` as `mask`, which accept flags from any set.
@@ -293,6 +334,29 @@ export function setBit(mask: RawBitmask, bit: number): RawBitmask {
 export function clearBit(mask: RawBitmask, bit: number): RawBitmask {
   validateBit(bit);
   return toMask(mask & ~(1 << bit));
+}
+
+/**
+ * Returns `mask` with the bit at position `bit` flipped: set if it was clear, cleared if it was
+ * set.
+ *
+ * Takes only raw masks, from `fromBit`, `fromBits`, `fromRaw`, `NONE` or `ALL`. A named mask is
+ * a compile error, for the same reasons as `setBit` and `clearBit`. Use `toggle` with a flag
+ * instead.
+ *
+ * @example
+ * ```ts
+ * layers = Bitmask.toggleBit(layers, 3);
+ * ```
+ *
+ * @param mask - The mask to flip the bit in.
+ * @param bit - The bit position, from 0 to 31.
+ * @returns A new mask with `bit` flipped.
+ * @throws {RangeError} If `bit` isn't an integer from 0 to 31.
+ */
+export function toggleBit(mask: RawBitmask, bit: number): RawBitmask {
+  validateBit(bit);
+  return toMask(mask ^ (1 << bit));
 }
 
 /**
