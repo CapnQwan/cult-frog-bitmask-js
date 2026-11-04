@@ -374,4 +374,24 @@ describe('Bitmask', () => {
       expect(() => Bitmask.hasBit(Bitmask.ALL, -1)).toThrow(RangeError);
     });
   });
+
+  describe('isEmpty', () => {
+    it('should be true for NONE', () => {
+      expect(Bitmask.isEmpty(Bitmask.NONE)).toBe(true);
+      expect(Bitmask.isEmpty(Bitmask.fromBits([]))).toBe(true);
+      expect(Bitmask.isEmpty(Bitmask.fromRaw(0))).toBe(true);
+    });
+
+    it('should be false when any bit is set', () => {
+      expect(Bitmask.isEmpty(Bitmask.fromBit(0))).toBe(false);
+      expect(Bitmask.isEmpty(Bitmask.fromBit(MAX_BIT))).toBe(false);
+      expect(Bitmask.isEmpty(Bitmask.ALL)).toBe(false);
+    });
+
+    it('should be true once every bit is cleared', () => {
+      const mask = Bitmask.fromBits([3, 31]);
+      expect(Bitmask.isEmpty(Bitmask.remove(mask, mask))).toBe(true);
+      expect(Bitmask.isEmpty(Bitmask.intersect(mask, Bitmask.fromBit(4)))).toBe(true);
+    });
+  });
 });

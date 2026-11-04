@@ -420,6 +420,24 @@ export function hasBit(mask: Bitmask, bit: number): boolean {
   return ((mask >>> bit) & 1) === 1;
 }
 
+/**
+ * Whether `mask` has no bits set.
+ *
+ * The same as `mask === Bitmask.NONE`, but reads better in conditions. It accepts any mask, raw
+ * or named, as it only reads.
+ *
+ * @example
+ * ```ts
+ * if (Bitmask.isEmpty(Bitmask.intersect(a.collidesWith, b.layers))) return;
+ * ```
+ *
+ * @param mask - The mask to check.
+ * @returns `true` if no bits are set in `mask`.
+ */
+export function isEmpty(mask: Bitmask): boolean {
+  return mask === NONE;
+}
+
 /** The mask with no bits set. It fits the mask type of every flag set, and raw masks too. */
 export const NONE = toMask<never>(RAW_NONE);
 

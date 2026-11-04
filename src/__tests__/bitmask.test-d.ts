@@ -138,9 +138,12 @@ describe('setBit, clearBit and toggleBit', () => {
   });
 });
 
-describe('hasBit', () => {
-  it('accepts raw and named masks, since it only reads', () => {
+describe('hasBit and isEmpty', () => {
+  it('accept raw and named masks, since they only read', () => {
     expectTypeOf(Bitmask.hasBit(Bitmask.fromBit(0), 0)).toEqualTypeOf<boolean>();
     expectTypeOf(Bitmask.hasBit(Clear.color, 0)).toEqualTypeOf<boolean>();
+    expectTypeOf(Bitmask.isEmpty(Bitmask.fromBit(0))).toEqualTypeOf<boolean>();
+    expectTypeOf(Bitmask.isEmpty(Clear.color)).toEqualTypeOf<boolean>();
+    expectTypeOf(Bitmask.isEmpty(Bitmask.NONE)).toEqualTypeOf<boolean>();
   });
 });
