@@ -31,7 +31,9 @@ function validateRaw(value: number): void {
 
 function validateBit(bit: number): void {
   if (!isInRange(bit))
-    throw new RangeError(`Bitmask bit out of range (${MIN_BIT}..${MAX_BIT}): got ${bit}`);
+    throw new RangeError(
+      `Bitmask: bit out of range, expected an integer from ${MIN_BIT} to ${MAX_BIT}, got ${bit}`
+    );
 }
 
 function toMask<F extends string = string>(value: number): Bitmask<F> {
@@ -58,7 +60,7 @@ function toMask<F extends string = string>(value: number): Bitmask<F> {
  */
 export function fromRaw(value: number): RawBitmask {
   validateRaw(value);
-  return toMask(value) as RawBitmask;
+  return toMask(value);
 }
 /**
  * Returns `mask` with every bit in `flags` set as well.
@@ -322,3 +324,5 @@ export const NONE = toMask<never>(RAW_NONE);
  * every flag set, and raw masks too, but sets every bit rather than only that set's flags.
  */
 export const ALL = toMask<never>(RAW_ALL);
+
+export { BIT_COUNT, MAX_BIT, MIN_BIT } from './constants.js';

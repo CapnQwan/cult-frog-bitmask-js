@@ -77,6 +77,7 @@ abilities = Bitflags.fromRaw(Ability, save.abilities); // reading it back needs 
 Worth knowing:
 
 - **A set holds at most 32 flags.** A mask is a single 32-bit number, so more than 32 names or entries throws a `RangeError`.
+- **Sets are frozen.** Assigning or adding a flag at runtime throws a `TypeError`, so a set can't be changed after it's made, even by code outside TypeScript.
 - **`fromNames` assigns bits by position.** Inserting a name anywhere but the end moves the bits of every name after it. If masks are saved or sent anywhere, such as a save file or over the network, use `create` so each bit stays fixed.
 - **Names must be unique in `fromNames`.** A repeated name throws a `RangeError`.
 - **`create` checks every bit position.** One that isn't an integer from 0 to 31, or that's used by two names, throws a `RangeError`.
@@ -122,6 +123,9 @@ Combining and testing masks:
 | --- | --- |
 | `NONE` | No bits set. |
 | `ALL` | All 32 bits set. |
+| `MIN_BIT` | The lowest bit position, `0`. |
+| `MAX_BIT` | The highest bit position, `31`. |
+| `BIT_COUNT` | The number of bits in a mask, `32`, which is also the most flags a set can hold. |
 
 ```ts
 let layers: RawBitmask = Bitmask.fromBits([0, 2]);

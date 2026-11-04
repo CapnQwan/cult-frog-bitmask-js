@@ -5,7 +5,42 @@ import { Bitflags, Bitmask } from '../index.js';
 import type { MaskOf, RawBitmask } from '../index.js';
 
 const Clear = Bitflags.fromNames(['color', 'depth']);
+const Pass = Bitflags.fromNames(['sprite', 'shadow']);
 type ClearMask = MaskOf<typeof Clear>;
+
+describe('named masks', () => {
+  it('combine with flags from their own set and keep its type', () => {
+    expectTypeOf(Bitmask.add(Clear.color, Clear.depth)).toEqualTypeOf<ClearMask>();
+    expectTypeOf(Bitmask.remove(Clear.color, Clear.depth)).toEqualTypeOf<ClearMask>();
+    expectTypeOf(Bitmask.has(Clear.color, Clear.depth)).toEqualTypeOf<boolean>();
+    expectTypeOf(Bitmask.hasAny(Clear.color, Clear.depth)).toEqualTypeOf<boolean>();
+  });
+
+  it('accept NONE and ALL in either argument', () => {
+    expectTypeOf(Bitmask.add(Bitmask.NONE, Clear.color)).toEqualTypeOf<ClearMask>();
+    expectTypeOf(Bitmask.remove(Bitmask.ALL, Clear.color)).toEqualTypeOf<ClearMask>();
+    expectTypeOf(Bitmask.add(Clear.color, Bitmask.ALL)).toEqualTypeOf<ClearMask>();
+    expectTypeOf(Bitmask.remove(Clear.color, Bitmask.NONE)).toEqualTypeOf<ClearMask>();
+    expectTypeOf(Bitmask.has(Bitmask.ALL, Clear.color)).toEqualTypeOf<boolean>();
+    expectTypeOf(Bitmask.hasAny(Clear.color, Bitmask.NONE)).toEqualTypeOf<boolean>();
+  });
+
+  it('never mix with masks from another set', () => {
+    // @ts-expect-error a Pass flag isn't one of Clear's, so add rejects it.
+    Bitmask.add(Clear.color, Pass.sprite);
+    // @ts-expect-error a Pass flag isn't one of Clear's, so remove rejects it.
+    Bitmask.remove(Clear.color, Pass.sprite);
+    // @ts-expect-error a Pass flag isn't one of Clear's, so has rejects it.
+    Bitmask.has(Clear.color, Pass.sprite);
+    // @ts-expect-error a Pass flag isn't one of Clear's, so hasAny rejects it.
+    Bitmask.hasAny(Clear.color, Pass.sprite);
+  });
+
+  it('are not assignable to a mask of another set', () => {
+    // @ts-expect-error a Clear mask isn't a Pass mask.
+    const _pass: MaskOf<typeof Pass> = Clear.color;
+  });
+});
 
 describe('raw masks', () => {
   it('are returned by the bit-position builders', () => {

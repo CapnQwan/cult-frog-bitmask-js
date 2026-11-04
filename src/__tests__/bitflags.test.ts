@@ -79,6 +79,29 @@ describe('Bitflags', () => {
       expect(() => Bitflags.create({ foo: 1, bar: 2, baz: 1 })).toThrow('duplicate bits');
     });
 
+    it('should report an out-of-range bit before a duplicate', () => {
+      expect(() => Bitflags.create({ foo: 40, bar: 40 })).toThrow('bit out of range');
+      expect(() => Bitflags.create({ foo: Number.NaN, bar: Number.NaN })).toThrow(
+        'bit out of range'
+      );
+    });
+
+    it('should return a frozen set', () => {
+      expect(Object.isFrozen(Bitflags.create({ foo: 1 }))).toBe(true);
+      expect(Object.isFrozen(Bitflags.fromNames(['foo']))).toBe(true);
+    });
+
+    it('should throw if a flag is changed or added at runtime', () => {
+      const flags = Bitflags.create({ foo: 1 }) as Record<string, number>;
+      expect(() => {
+        flags.foo = 5;
+      }).toThrow(TypeError);
+      expect(() => {
+        flags.bar = 2;
+      }).toThrow(TypeError);
+      expect(flags.foo).toBe(Bitmask.fromBit(1));
+    });
+
     it('should throw if there are more entries than bits', () => {
       const layout = Object.fromEntries(
         namesOfLength(BIT_COUNT + 1).map((name, i) => [name, i % BIT_COUNT])

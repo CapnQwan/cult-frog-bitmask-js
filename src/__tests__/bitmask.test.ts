@@ -6,6 +6,25 @@ import { Bitmask } from '../index.js';
 const BIT_31 = 2 ** 31;
 
 describe('Bitmask', () => {
+  describe('constants', () => {
+    it('should export the bit range', () => {
+      expect(Bitmask.MIN_BIT).toBe(0);
+      expect(Bitmask.MAX_BIT).toBe(31);
+      expect(Bitmask.BIT_COUNT).toBe(32);
+    });
+
+    it('should have one bit position per bit', () => {
+      expect(Bitmask.MAX_BIT - Bitmask.MIN_BIT + 1).toBe(Bitmask.BIT_COUNT);
+    });
+
+    it('should match the range isInRange accepts', () => {
+      expect(Bitmask.isInRange(Bitmask.MIN_BIT)).toBe(true);
+      expect(Bitmask.isInRange(Bitmask.MAX_BIT)).toBe(true);
+      expect(Bitmask.isInRange(Bitmask.MIN_BIT - 1)).toBe(false);
+      expect(Bitmask.isInRange(Bitmask.MAX_BIT + 1)).toBe(false);
+    });
+  });
+
   describe('NONE and ALL', () => {
     it('should have no bits set in NONE', () => {
       expect(Bitmask.NONE).toBe(0);
@@ -69,11 +88,15 @@ describe('Bitmask', () => {
     });
 
     it('should throw an error if the bit is greater than the bit count', () => {
-      expect(() => Bitmask.fromBit(BIT_COUNT)).toThrow(`Bitmask bit out of range`);
+      expect(() => Bitmask.fromBit(BIT_COUNT)).toThrow('Bitmask: bit out of range');
     });
 
     it('should throw an error if the bit is negative', () => {
-      expect(() => Bitmask.fromBit(-1)).toThrow('Bitmask bit out of range');
+      expect(() => Bitmask.fromBit(-1)).toThrow('Bitmask: bit out of range');
+    });
+
+    it('should name the expected range and the bad bit in the error', () => {
+      expect(() => Bitmask.fromBit(40)).toThrow('expected an integer from 0 to 31, got 40');
     });
 
     it('should throw a RangeError if the bit is not an integer', () => {
@@ -101,7 +124,7 @@ describe('Bitmask', () => {
   });
 
   describe('add', () => {
-    it('union: should create a combined bitmask from two bitmasks', () => {
+    it('should combine the bits of both masks', () => {
       const mask1 = Bitmask.fromBit(1);
       const mask2 = Bitmask.fromBit(31);
       const mask3 = Bitmask.fromBit(15);

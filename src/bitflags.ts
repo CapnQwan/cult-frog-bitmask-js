@@ -49,9 +49,9 @@ export function create<const T extends BitLayout>(layout: T): Bitflags<Extract<k
   const bitmaskFields: Record<string, number> = {};
   const entries = Object.entries(layout);
   validateLength(entries.length);
-  validateUniqueBits(Object.values(layout));
   for (const [key, value] of entries) bitmaskFields[key] = Bitmask.fromBit(value);
-  return bitmaskFields as Bitflags<Extract<keyof T, string>>;
+  validateUniqueBits(Object.values(layout));
+  return Object.freeze(bitmaskFields) as Bitflags<Extract<keyof T, string>>;
 }
 
 /**
