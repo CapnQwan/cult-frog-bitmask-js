@@ -2,8 +2,6 @@
 
 A lightweight TypeScript library of bitmask operations and utilities for managing bitwise flags.
 
-> **Status:** in early development. The package isn't on npm yet and its API may still change.
-
 ## What is a bitmask?
 
 A bitmask stores a set of on/off flags in the bits of a single integer, so one number can hold many booleans. Combining or testing flags takes a single bitwise operation, which makes masks compact and cheap to compare. That suits work that checks a lot of flags often, such as matching entity components or filtering physics collisions.

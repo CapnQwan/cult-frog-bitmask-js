@@ -1,6 +1,6 @@
 {
   "name": "@cult-frog/bitmask",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "A lightweight TypeScript library of bitmask operations and utilities for managing bitwise flags",
   "license": "MIT",
   "author": "Quin Partridge",
